@@ -8,7 +8,12 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class Simulation implements View.OnTouchListener, GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener {
 
@@ -83,12 +88,11 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         black.setARGB(255,0,0,0);
         c.drawRect(0, 0, width, height, black);
 
+        float[] lines = new float[0];
+        lines = addCrossToLinesAt(lines,0,0);
+        lines = addCrossToLinesAt(lines,20,0);
+        lines = addCrossToLinesAt(lines,20,40);
 
-        float[] lines = new float[]{
-                width/2 - 2,height/2 , width/2 + 3, height/2
-                ,
-                width/2 ,height/2 - 2, width/2 ,height/2 + 3
-        };
         c.drawLines(lines,pallette.get(GREEN_LINE));
 
     }
@@ -98,6 +102,21 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     /*
     gesture methods
      */
+
+    private float[] addCrossToLinesAt(float[] lines, float x, float y) {
+        float[] newlines = new float[lines.length+8];
+
+        float[] cross = new float[]{
+                x+(float)width/2 - 2,y+(float)height/2 , x+(float)width/2 + 3, y+(float)height/2
+                ,
+              x+  (float)width/2 ,y+(float)height/2 - 2, x+(float)width/2 ,y+(float)height/2 + 3
+        };
+
+        for (int ff=0;ff<lines.length;ff++) newlines[ff]=lines[ff];
+        for (int ff=0;ff<cross.length;ff++) newlines[lines.length+ff]=cross[ff];
+
+        return newlines;
+    }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
