@@ -1,0 +1,2 @@
+rootProject.name='Arg3d'
+include ':app'

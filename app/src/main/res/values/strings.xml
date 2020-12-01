@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Arg!</string>
+    <string name="dummy_button">options</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+</resources>
