@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="robin.arg3d">
+    package="robin.plop">
 
     <application
         android:allowBackup="true"
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".FullscreenActivity"
+            android:name="robin.plop.FullscreenActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
