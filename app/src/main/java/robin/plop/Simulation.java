@@ -23,6 +23,11 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     int width;
     int height;
 
+    float scale = 1;
+
+    int offsetx = 0;
+    int offsety = 0;
+
     Bug[] bugs;
 
     public class Bug {
@@ -30,13 +35,13 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         double y;
         double dx;
         double dy;
-        int bt=-1;
+        int bt = -1;
 
         Bug() {
-            this.x = (0.8*width * (Math.random()-0.5));
-            this.y = (0.8*height * (Math.random()-0.5));
-            this.dx = 1.5*(Math.random() - 0.5);
-            this.dy = 1.5*(Math.random() - 0.5);
+            this.x = (0.8 * width * (Math.random() - 0.5));
+            this.y = (0.8 * height * (Math.random() - 0.5));
+            this.dx = 1.5 * (Math.random() - 0.5);
+            this.dy = 1.5 * (Math.random() - 0.5);
         }
 
         public void move() {
@@ -48,7 +53,8 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             int bt = -1;
             int btd = 0;
             for (int bb = 0; bb < bugs.length; bb++) {
-                if (bugs[bb].getX() != this.getX() && bugs[bb].getY() != this.getY()) {
+
+                if (bugs[bb] != null && bugs[bb].getX() != this.getX() && bugs[bb].getY() != this.getY()) {
                     int ddx = bugs[bb].getX() - this.getX();
                     int ddy = bugs[bb].getY() - this.getY();
                     int dist = ddx * ddx + ddy * ddy;
@@ -59,11 +65,12 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
                 }
             }
 
-            if (bt>=0) {
-            this.bt = bt;
-            this.dx = 0.5 * this.dx + 0.5 * bugs[bt].dx ;
-            this.dy = 0.5 * this.dy + 0.5 * bugs[bt].dy ;
-        }}
+            if (bt >= 0) {
+                this.bt = bt;
+                this.dx = 0.5 * this.dx + 0.5 * bugs[bt].dx;
+                this.dy = 0.5 * this.dy + 0.5 * bugs[bt].dy;
+            }
+        }
 
         public int getX() {
             return (int) this.x;
@@ -90,7 +97,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         //setupPaintableOptions();
         //addWorm(initialWorms);
 
-        bugs = new Bug[100];
+        bugs = new Bug[200];
 
         Log.d("Simulation", "Create Simulation");
 
@@ -128,7 +135,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         this.width = width;
         this.height = height;
 
-        if (bugs[0]==null) for (int bb = 0; bb < bugs.length; bb++) bugs[bb] = new Bug();
+        if (bugs[0] == null) for (int bb = 0; bb < bugs.length; bb++) bugs[bb] = new Bug();
 
 
     }
@@ -149,7 +156,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             bugs[bb].move();
             bugs[bb].match(bugs);
 
-            lines = addCrossToLinesAt(lines, bugs[bb].getX(), bugs[bb].getY());
+            lines = addCrossToLinesAt(lines, scale * (bugs[bb].getX()) + offsetx, scale * (bugs[bb].getY()) + offsety);
         }
 
 
@@ -208,13 +215,18 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         plop3DView.message("scroll");
+        this.offsetx = this.offsetx - (int) distanceX;
+        this.offsety = this.offsety - (int) distanceY;
         return false;
     }
 
     @Override
     public void onLongPress(MotionEvent e) {
         plop3DView.message("long");
-        bugs[0]=null;
+        bugs[0] = null;
+        offsetx = 0;
+        offsety = 0;
+        scale = 1f;
     }
 
     @Override
@@ -225,8 +237,8 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-
-
+        this.scale *= detector.getScaleFactor();
+        if (scale < 0.2) scale = 0.2f;
         return true;
     }
 
