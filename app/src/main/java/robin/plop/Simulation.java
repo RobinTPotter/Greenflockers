@@ -238,7 +238,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
         this.scale *= detector.getScaleFactor();
-        if (scale < 0.2) scale = 0.2f;
+        if (scale < 0.1) scale = 0.1f;
         return true;
     }
 
