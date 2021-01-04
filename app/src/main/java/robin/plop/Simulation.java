@@ -9,15 +9,15 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 public class Simulation implements View.OnTouchListener, GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener {
 
+    private int initial_bugs = 200;
 
-    private static final String GREEN_LINE = "green_line";
-    private static final String BLACK_LINE = "black_line";
-    private static final String WHITE_LINE = "white_line";
+    enum Colour {GREEN_LINE, BLACK_LINE, WHITE_LINE}
 
     Plop3dView plop3DView;
     int width;
@@ -27,10 +27,15 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     int offsetx = 0;
     int offsety = 0;
+    ArrayList<Bug> bugs;
+    double[][] distance;
 
-    Bug[] bugs;
+    public interface Distant {
+	public int getX();
+	public int getY();
+    }
 
-    public class Bug {
+    public class Bug implements Distant {
         double x;
         double y;
         double dx;
@@ -49,14 +54,14 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             this.y = this.y + this.dy;
         }
 
-        public void match(Bug[] bugs) {
+        public void match(ArrayList<Distant> bugs) {
             int bt = -1;
             int btd = 0;
-            for (int bb = 0; bb < bugs.length; bb++) {
-
-                if (bugs[bb] != null && bugs[bb].getX() != this.getX() && bugs[bb].getY() != this.getY()) {
-                    int ddx = bugs[bb].getX() - this.getX();
-                    int ddy = bugs[bb].getY() - this.getY();
+            for (int bb = 0; bb < bugs.size(); bb++) {
+                Bug bugtarget = bugs.get(bb);
+                if (bugtarget != null && bugtarget.getX() != this.getX() && bugtarget.getY() != this.getY()) {
+                    int ddx = bugtarget.getX() - this.getX();
+                    int ddy = bugtarget.getY() - this.getY();
                     int dist = ddx * ddx + ddy * ddy;
                     if (bt == -1 || dist < btd) {
                         bt = bb;
@@ -65,10 +70,10 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
                 }
             }
 
+            this.bt = bt;
             if (bt >= 0) {
-                this.bt = bt;
-                this.dx = 0.5 * this.dx + 0.5 * bugs[bt].dx;
-                this.dy = 0.5 * this.dy + 0.5 * bugs[bt].dy;
+                this.dx = 0.5 * this.dx + 0.5 * bugs.get(bt).dx;
+                this.dy = 0.5 * this.dy + 0.5 * bugs.get(bt).dy;
             }
         }
 
@@ -81,7 +86,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         }
     }
 
-    HashMap<String, Paint> pallette;
+    HashMap<Colour, Paint> pallette;
 
     /**
      * constructor for the simulation allows contact between main app activity (for menu etc)
@@ -97,7 +102,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         //setupPaintableOptions();
         //addWorm(initialWorms);
 
-        bugs = new Bug[200];
+        bugs = new ArrayList<Bug>();
 
         Log.d("Simulation", "Create Simulation");
 
@@ -108,10 +113,10 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
      * set up colour palette for use
      */
     private void setupColours() {
-        pallette = new HashMap<String, Paint>();
-        pallette.put(GREEN_LINE, newPaint(0, 255, 0, Paint.Style.STROKE));
-        pallette.put(BLACK_LINE, newPaint(0, 0, 0, Paint.Style.STROKE));
-        pallette.put(WHITE_LINE, newPaint(255, 255, 255, Paint.Style.STROKE));
+        pallette = new HashMap<Colour, Paint>();
+        pallette.put(Colour.GREEN_LINE, newPaint(0, 255, 0, Paint.Style.STROKE));
+        pallette.put(Colour.BLACK_LINE, newPaint(0, 0, 0, Paint.Style.STROKE));
+        pallette.put(Colour.WHITE_LINE, newPaint(255, 255, 255, Paint.Style.STROKE));
 
 
     }
@@ -135,7 +140,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         this.width = width;
         this.height = height;
 
-        if (bugs[0] == null) for (int bb = 0; bb < bugs.length; bb++) bugs[bb] = new Bug();
+        if (bugs.size() == 0) for (int bb = 0; bb < initial_bugs; bb++) bugs.add(new Bug());
 
 
     }
@@ -149,18 +154,20 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         c.drawRect(0, 0, width, height, black);
 
         float[] lines = new float[0];
+	boolean lines=false;
 
+        for (int bb = 0; bb < bugs.size(); bb++) {
+            if (bugs.get(bb) == null) return;
+            bugs.get(bb).move();
+            bugs.get(bb).match(bugs);
 
-        for (int bb = 0; bb < bugs.length; bb++) {
-            if (bugs[bb] == null) return;
-            bugs[bb].move();
-            bugs[bb].match(bugs);
+            if (lines) lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
+            else c.drawCircle( scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety,3,Colour.GREEN_LINE);
 
-            lines = addCrossToLinesAt(lines, scale * (bugs[bb].getX()) + offsetx, scale * (bugs[bb].getY()) + offsety);
         }
 
 
-        c.drawLines(lines, pallette.get(GREEN_LINE));
+    if (lines)    c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
 
     }
 
@@ -223,7 +230,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     @Override
     public void onLongPress(MotionEvent e) {
         plop3DView.message("long");
-        bugs[0] = null;
+        bugs.clear();
         offsetx = 0;
         offsety = 0;
         scale = 1f;
