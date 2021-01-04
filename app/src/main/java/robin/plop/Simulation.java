@@ -27,12 +27,16 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     int offsetx = 0;
     int offsety = 0;
-    ArrayList<Bug> bugs;
+    ArrayList<Distant> bugs;
     double[][] distance;
 
     public interface Distant {
 	public int getX();
 	public int getY();
+	public double getDx();
+	public double getDy();
+	public void move();
+	public void match(ArrayList<Distant> al);
     }
 
     public class Bug implements Distant {
@@ -41,6 +45,8 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         double dx;
         double dy;
         int bt = -1;
+
+
 
         Bug() {
             this.x = (0.8 * width * (Math.random() - 0.5));
@@ -58,7 +64,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             int bt = -1;
             int btd = 0;
             for (int bb = 0; bb < bugs.size(); bb++) {
-                Bug bugtarget = bugs.get(bb);
+                Distant bugtarget = bugs.get(bb);
                 if (bugtarget != null && bugtarget.getX() != this.getX() && bugtarget.getY() != this.getY()) {
                     int ddx = bugtarget.getX() - this.getX();
                     int ddy = bugtarget.getY() - this.getY();
@@ -70,12 +76,19 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
                 }
             }
 
+            Distant target = bugs.get(bt);
+		if (target instanceof Bug) {
             this.bt = bt;
             if (bt >= 0) {
-                this.dx = 0.5 * this.dx + 0.5 * bugs.get(bt).dx;
-                this.dy = 0.5 * this.dy + 0.5 * bugs.get(bt).dy;
+                this.dx = 0.5 * this.dx + 0.5 * bugs.get(bt).getDx();
+                this.dy = 0.5 * this.dy + 0.5 * bugs.get(bt).getDy();
             }
+}
         }
+
+
+	public double getDx() { return this.dx; }
+	public double getDy() { return this.dy; }
 
         public int getX() {
             return (int) this.x;
@@ -102,7 +115,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         //setupPaintableOptions();
         //addWorm(initialWorms);
 
-        bugs = new ArrayList<Bug>();
+        bugs = new ArrayList<Distant>();
 
         Log.d("Simulation", "Create Simulation");
 
