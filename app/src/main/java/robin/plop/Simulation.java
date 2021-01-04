@@ -154,20 +154,20 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         c.drawRect(0, 0, width, height, black);
 
         float[] lines = new float[0];
-	boolean lines=false;
+	boolean wlines=false;
 
         for (int bb = 0; bb < bugs.size(); bb++) {
             if (bugs.get(bb) == null) return;
             bugs.get(bb).move();
             bugs.get(bb).match(bugs);
 
-            if (lines) lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
+            if (wlines) lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
             else c.drawCircle( scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety,3,Colour.GREEN_LINE);
 
         }
 
 
-    if (lines)    c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
+    if (wlines)    c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
 
     }
 
