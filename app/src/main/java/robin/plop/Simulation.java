@@ -162,7 +162,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             bugs.get(bb).match(bugs);
 
             if (wlines) lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
-            else c.drawCircle( scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety,3,Colour.GREEN_LINE);
+            else c.drawCircle( scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety,3,pallette.get(Colour.GREEN_LINE));
 
         }
 
