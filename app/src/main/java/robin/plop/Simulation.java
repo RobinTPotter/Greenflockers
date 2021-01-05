@@ -31,12 +31,12 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     double[][] distance;
 
     public interface Distant {
-	public int getX();
-	public int getY();
-	public double getDx();
-	public double getDy();
-	public void move();
-	public void match(ArrayList<Distant> al);
+        public int getX();
+        public int getY();
+        public double getDx();
+        public double getDy();
+        public void move();
+        public void match(ArrayList<Distant> al);
     }
 
     public class Bug implements Distant {
