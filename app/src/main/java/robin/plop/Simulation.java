@@ -27,16 +27,69 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     int offsetx = 0;
     int offsety = 0;
+
     ArrayList<Distant> bugs;
-    double[][] distance;
+    ArrayList<Distant> seeds;
+
 
     public interface Distant {
-	public int getX();
-	public int getY();
-	public double getDx();
-	public double getDy();
-	public void move();
-	public void match(ArrayList<Distant> al);
+        public int getX();
+
+        public int getY();
+
+        public double getDx();
+
+        public double getDy();
+
+        public void move();
+
+        public void match(ArrayList<Distant> al);
+    }
+
+    enum SeedType {
+        HORIZONTAL, VERTICAL
+    }
+
+    public class Seed implements Distant {
+
+        double x;
+        double y;
+
+        SeedType ability;
+
+        private double dx;
+        private double dy;
+
+        Seed(double x , double y) {
+            this.x=x; this.y=y;
+            this.ability = Math.random()>0.5 ? SeedType.HORIZONTAL : SeedType.VERTICAL;
+        }
+
+        public double getDx() {
+            return this.dx;
+        }
+
+        public double getDy() {
+            return this.dy;
+        }
+
+        @Override
+        public void move() {
+        }
+
+        @Override
+        public void match(ArrayList<Distant> al) {
+        }
+
+        public int getX() {
+            return (int) this.x;
+        }
+
+        public int getY() {
+            return (int) this.y;
+        }
+
+
     }
 
     public class Bug implements Distant {
@@ -45,8 +98,6 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         double dx;
         double dy;
         int bt = -1;
-
-
 
         Bug() {
             this.x = (0.8 * width * (Math.random() - 0.5));
@@ -58,6 +109,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         public void move() {
             this.x = this.x + this.dx;
             this.y = this.y + this.dy;
+            if (Math.random()>0.9995) seeds.add(new Seed(x,y));
         }
 
         public void match(ArrayList<Distant> bugs) {
@@ -77,18 +129,41 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             }
 
             Distant target = bugs.get(bt);
-		if (target instanceof Bug) {
-            this.bt = bt;
-            if (bt >= 0) {
-                this.dx = 0.5 * this.dx + 0.5 * bugs.get(bt).getDx();
-                this.dy = 0.5 * this.dy + 0.5 * bugs.get(bt).getDy();
+            if (target instanceof Bug) {
+                this.bt = bt;
+                if (bt >= 0) {
+                    this.dx = 0.5 * this.dx + 0.5 * bugs.get(bt).getDx();
+                    this.dy = 0.5 * this.dy + 0.5 * bugs.get(bt).getDy();
+                }
             }
-}
         }
 
+        public void matchSeed(ArrayList<Seed> seeds) {
+            for (int bb = 0; bb < seeds.size(); bb++) {
+                Distant seedtarget = seeds.get(bb);
+                if (seedtarget != null) {
+                    int ddx = seedtarget.getX() - this.getX();
+                    int ddy = seedtarget.getY() - this.getY();
+                    double dist= ddx * ddx + ddy * ddy;
+                    if (dist<10) {
+                        double fact= (50-dist)/50;
+                        if (((Seed)seedtarget).ability==SeedType.HORIZONTAL){ dx=dx+fact; }
+                        else if (((Seed)seedtarget).ability==SeedType.VERTICAL){ dy=dy+fact; }
 
-	public double getDx() { return this.dx; }
-	public double getDy() { return this.dy; }
+                    }
+
+                }
+            }
+
+        }
+
+        public double getDx() {
+            return this.dx;
+        }
+
+        public double getDy() {
+            return this.dy;
+        }
 
         public int getX() {
             return (int) this.x;
@@ -116,6 +191,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         //addWorm(initialWorms);
 
         bugs = new ArrayList<Distant>();
+        seeds = new ArrayList<Distant>();
 
         Log.d("Simulation", "Create Simulation");
 
@@ -148,7 +224,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     protected void updateProperties(int width, int height) {
 
-        Log.d("Simulation", "update props");
+        //Log.d("Simulation", "update props");
 
         this.width = width;
         this.height = height;
@@ -160,27 +236,38 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     protected void drawMethod(int width, int height) {
 
-        Log.d("Simulation", "draw");
+        //Log.d("Simulation", "draw");
         Canvas c = new Canvas(plop3DView.getBuffer());
         Paint black = new Paint();
         black.setARGB(255, 0, 0, 0);
         c.drawRect(0, 0, width, height, black);
 
         float[] lines = new float[0];
-	boolean wlines=false;
+        boolean wlines = false;
 
         for (int bb = 0; bb < bugs.size(); bb++) {
             if (bugs.get(bb) == null) return;
             bugs.get(bb).move();
             bugs.get(bb).match(bugs);
 
-            if (wlines) lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
-            else c.drawCircle( scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety,3,pallette.get(Colour.GREEN_LINE));
+            if (wlines)
+                lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
+            else
+                c.drawCircle(scale * (bugs.get(bb).getX()) + offsetx + width / 2, scale * (bugs.get(bb).getY()) + offsety + height / 2, 3, pallette.get(Colour.GREEN_LINE));
 
         }
 
+        if (wlines) c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
 
-    if (wlines)    c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
+
+
+        for (int bb = 0; bb < seeds.size(); bb++) {
+            if (seeds.get(bb) == null) return;
+            c.drawCircle(scale * (seeds.get(bb).getX()) + offsetx + width / 2, scale * (seeds.get(bb).getY()) + offsety + height / 2, 2, pallette.get(Colour.WHITE_LINE));
+        }
+
+
+
 
     }
 
@@ -228,7 +315,6 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
         plop3DView.message("single tap up");
-
         return false;
     }
 
@@ -244,6 +330,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     public void onLongPress(MotionEvent e) {
         plop3DView.message("long");
         bugs.clear();
+        seeds.clear();
         offsetx = 0;
         offsety = 0;
         scale = 1f;
@@ -265,14 +352,12 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
         plop3DView.message("scale begin");
-
         return true;
     }
 
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {
         plop3DView.message("scale end");
-
     }
 
 
