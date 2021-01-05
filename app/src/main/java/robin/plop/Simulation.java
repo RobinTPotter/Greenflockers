@@ -31,18 +31,17 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
     ArrayList<Distant> bugs;
     ArrayList<Distant> seeds;
 
+    double [][] distancesBugs;
+    double [][] distancesSeeds;
 
     public interface Distant {
         public int getX();
-
         public int getY();
-
+        public double getXd();
+        public double getYd();
         public double getDx();
-
         public double getDy();
-
         public void move();
-
         public void match(ArrayList<Distant> al);
     }
 
@@ -87,6 +86,14 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
         public int getY() {
             return (int) this.y;
+        }
+
+        public double getXd() {
+            return  this.x;
+        }
+
+        public double getYd() {
+            return  this.y;
         }
 
 
@@ -138,7 +145,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
             }
         }
 
-        public void matchSeed(ArrayList<Seed> seeds) {
+        public void matchSeed(ArrayList<Distant> seeds) {
             for (int bb = 0; bb < seeds.size(); bb++) {
                 Distant seedtarget = seeds.get(bb);
                 if (seedtarget != null) {
@@ -171,6 +178,13 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
         public int getY() {
             return (int) this.y;
+        }
+        public double getXd() {
+            return  this.x;
+        }
+
+        public double getYd() {
+            return  this.y;
         }
     }
 
@@ -210,7 +224,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
 
     }
 
-    private static float distSquared(float x1, float y1, float x2, float y2) {
+    private static double distSquared(double x1, double y1, double x2, double y2) {
         return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
 
     }
@@ -230,8 +244,26 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         this.height = height;
 
         if (bugs.size() == 0) for (int bb = 0; bb < initial_bugs; bb++) bugs.add(new Bug());
-
-
+        else {
+            distancesBugs = new double[bugs.size()][bugs.size()];
+            for (int bb1 = 0; bb1 < bugs.size(); bb1++)  {
+                for (int bb2 = 0; bb2< bugs.size(); bb2++)  {
+                    if (bb1>bb2) {
+                        double dist = distSquared(bugs.get(bb1).getXd(),bugs.get(bb1).getYd(), bugs.get(bb2).getXd(),bugs.get(bb2).getYd());
+                        distancesBugs[bb1][bb2]= dist;
+                        distancesBugs[bb2][bb1]= dist;
+                    }
+                }
+            }
+            
+            distancesSeeds = new double[bugs.size()][seeds.size()];
+            for (int bb1 = 0; bb1 < bugs.size(); bb1++)  {
+                for (int ss1 = 0; ss1< seeds.size(); ss1++)  {
+                        double dist = distSquared(bugs.get(bb1).getXd(),bugs.get(bb1).getYd(), seeds.get(ss1).getXd(),seeds.get(ss1).getYd());
+                        distancesSeeds[bb1][ss1]= dist;                    
+                }
+            }
+        }
     }
 
     protected void drawMethod(int width, int height) {
@@ -246,15 +278,15 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         boolean wlines = false;
 
         for (int bb = 0; bb < bugs.size(); bb++) {
-            if (bugs.get(bb) == null) return;
-            bugs.get(bb).move();
-            bugs.get(bb).match(bugs);
-
+            Distant bug = bugs.get(bb);
+            if (bug == null) return;
+            bug.move();
+            bug.match(bugs);
+            if (bug instanceof Bug) ((Bug)bug).matchSeed(seeds);
             if (wlines)
-                lines = addCrossToLinesAt(lines, scale * (bugs.get(bb).getX()) + offsetx, scale * (bugs.get(bb).getY()) + offsety);
+                lines = addCrossToLinesAt(lines, scale * (bug.getX()) + offsetx, scale * (bug.getY()) + offsety);
             else
-                c.drawCircle(scale * (bugs.get(bb).getX()) + offsetx + width / 2, scale * (bugs.get(bb).getY()) + offsety + height / 2, 3, pallette.get(Colour.GREEN_LINE));
-
+                c.drawCircle(scale * (bug.getX()) + offsetx + width / 2, scale * (bug.getY()) + offsety + height / 2, 3, pallette.get(Colour.GREEN_LINE));
         }
 
         if (wlines) c.drawLines(lines, pallette.get(Colour.GREEN_LINE));
