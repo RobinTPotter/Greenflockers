@@ -10,6 +10,7 @@ import android.view.View;
 
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -54,6 +55,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         double x;
         double y;
 
+        long ticks;
         SeedType ability;
 
         private double dx;
@@ -152,16 +154,21 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
                     int ddx = seedtarget.getX() - this.getX();
                     int ddy = seedtarget.getY() - this.getY();
                     double dist= ddx * ddx + ddy * ddy;
-                    if (dist<10) {
-                        double fact= (50-dist)/50;
-                        if (((Seed)seedtarget).ability==SeedType.HORIZONTAL){ dx=dx+fact; }
-                        else if (((Seed)seedtarget).ability==SeedType.VERTICAL){ dy=dy+fact; }
-
+                    if (dist<100) {
+                        double dirx = dx/Math.abs(dx);
+                        double diry = dy/Math.abs(dy);
+                        double fact= (100-dist)/100;
+                        switch (((Seed) seedtarget).ability) {
+                            case HORIZONTAL:
+                                dx=dx+fact*dirx;
+                                break;
+                            case VERTICAL:
+                                dy=dy+fact*diry;
+                                break;
+                        }
                     }
-
                 }
             }
-
         }
 
         public double getDx() {
@@ -208,6 +215,7 @@ public class Simulation implements View.OnTouchListener, GestureDetector.OnGestu
         seeds = new ArrayList<Distant>();
 
         Log.d("Simulation", "Create Simulation");
+
 
     }
 
